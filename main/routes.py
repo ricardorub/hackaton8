@@ -1,6 +1,6 @@
 import base64
 from flask import Blueprint, render_template, jsonify
-from models import PartidosPoliticos 
+from models import PartidosPoliticos
 
 main = Blueprint('main', __name__)
 
@@ -21,10 +21,10 @@ def get_partidos():
     try:
         # Consultar la base de datos usando el modelo PartidosPoliticos
         partidos = PartidosPoliticos.query.all()
-        
+
         lista_partidos_json = []
         for partido in partidos:
-            
+
             # Codificar el logo BLOB a base64 para enviarlo como string en el JSON
             # La app móvil puede decodificar esto para mostrar la imagen.
             logo_base64 = None
@@ -38,10 +38,10 @@ def get_partidos():
                 'nombre_partido': partido.nombre_partido,
                 'siglas': partido.siglas,
                 'fecha_inscripcion': partido.fecha_inscripcion.isoformat() if partido.fecha_inscripcion else None,
-                
+
                 # Devuelve el logo como un string base64
-                'logo_base64': logo_base64, 
-                
+                'logo_base64': logo_base64,
+
                 'direccion_legal': partido.direccion_legal,
                 'telefonos': partido.telefonos,
                 'sitio_web': partido.sitio_web,
@@ -50,7 +50,7 @@ def get_partidos():
                 'personero_alterno': partido.personero_alterno,
                 'ideologia': partido.ideologia
             })
-            
+
         # Devolver la lista de partidos como una respuesta JSON
         return jsonify(lista_partidos_json)
 
@@ -69,4 +69,14 @@ def mapa():
 
 # ... (puedes añadir tus otras rutas web aquí si es necesario)
 
+@main.route('/parte1')
+def parte1():
+    return render_template('parte1.html')
 
+@main.route('/parte3')
+def parte3():
+    return render_template('parte3.html')
+
+@main.route('/parte4')
+def parte4():
+    return render_template('parte4.html')
