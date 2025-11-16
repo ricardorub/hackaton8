@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Mapa Interactivo</h2>
+
+<!-- Filtros -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <label>Distrito</label>
+        <input id="filtro-distrito" class="form-control" placeholder="Ej: Lima">
+    </div>
+
+    <div class="col-md-4">
+        <label>Buscar por Centro</label>
+        <input id="filtro-nombre" class="form-control" placeholder="Nombre del centro">
+    </div>
+
+    <div class="col-md-4">
+        <label>DNI Responsable</label>
+        <input id="filtro-dni" class="form-control" placeholder="12345678">
+    </div>
+</div>
+
+<button class="btn btn-primary mb-3" onclick="cargarDatos()">Buscar</button>
+
+<!-- Contenedor del mapa -->
+<div id="map" style="height: 500px; width: 100%; border: 2px solid #333;"></div>
+
+<script>
+let map = L.map('map').setView([-12.0464, -77.0428], 11);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+}).addTo(map);
+
+let markers = [];
+
+function cargarDatos() {
+    let distrito = document.getElementById("filtro-distrito").value;
+    let nombre = document.getElementById("filtro-nombre").value;
+    let dni = document.getElementById("filtro-dni").value;
+
+    let url = `/mapa/api/centros?distrito=${distrito}&nombre=${nombre}&dni=${dni}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            // Eliminar marcadores anteriores
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            data.forEach(c => {
+                let marker = L.marker([c.lat, c.lng]).addTo(map);
+                marker.bindPopup(`<b>${c.nombre}</b><br>${c.distrito}`);
+                markers.push(marker);
+            });
+        });
+}
+</script>
+
+{% endblock %}
