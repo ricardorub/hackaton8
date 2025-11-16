@@ -1,14 +1,24 @@
 import base64
 from flask import Blueprint, render_template, jsonify
-from models import PartidosPoliticos 
+from models import PartidosPoliticos, CentrosVotacion
 
 main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
     """Ruta principal (web)."""
-    # Esta ruta sigue sirviendo tu aplicación web si la tienes
-    return render_template('index.html')
+    centros_query = CentrosVotacion.query.all()
+    centros = [
+        {
+            "id_centro": c.id_centro,
+            "nombre": c.nombre,
+            "distrito": c.distrito,
+            "latitud": float(c.latitud) if c.latitud is not None else None,
+            "longitud": float(c.longitud) if c.longitud is not None else None
+        }
+        for c in centros_query
+    ]
+    return render_template('index.html', centros=centros)
 
 # --- INICIO: API PARA LA APP MÓVIL ---
 
@@ -21,10 +31,10 @@ def get_partidos():
     try:
         # Consultar la base de datos usando el modelo PartidosPoliticos
         partidos = PartidosPoliticos.query.all()
-        
+
         lista_partidos_json = []
         for partido in partidos:
-            
+
             # Codificar el logo BLOB a base64 para enviarlo como string en el JSON
             # La app móvil puede decodificar esto para mostrar la imagen.
             logo_base64 = None
@@ -38,10 +48,10 @@ def get_partidos():
                 'nombre_partido': partido.nombre_partido,
                 'siglas': partido.siglas,
                 'fecha_inscripcion': partido.fecha_inscripcion.isoformat() if partido.fecha_inscripcion else None,
-                
+
                 # Devuelve el logo como un string base64
-                'logo_base64': logo_base64, 
-                
+                'logo_base64': logo_base64,
+
                 'direccion_legal': partido.direccion_legal,
                 'telefonos': partido.telefonos,
                 'sitio_web': partido.sitio_web,
@@ -50,7 +60,7 @@ def get_partidos():
                 'personero_alterno': partido.personero_alterno,
                 'ideologia': partido.ideologia
             })
-            
+
         # Devolver la lista de partidos como una respuesta JSON
         return jsonify(lista_partidos_json)
 
@@ -60,12 +70,6 @@ def get_partidos():
         return jsonify({"error": str(e)}), 500
 
 # --- FIN: API PARA LA APP MÓVIL ---
-
-@main.route('/mapa')
-def mapa():
-    """Ruta de mapa (web)."""
-    # Esta ruta también es parte de tu app web
-    return render_template('mapa.html')
 
 # ... (puedes añadir tus otras rutas web aquí si es necesario)
 

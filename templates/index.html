@@ -3,6 +3,9 @@
 
 <h2 class="mb-3">Lista de Centros de Votación</h2>
 
+<!-- Contenedor del mapa -->
+<div id="map" style="height: 500px; width: 100%; border: 2px solid #333; margin-bottom: 20px;"></div>
+
 <table class="table table-bordered">
     <thead class="table-dark">
         <tr>
@@ -14,12 +17,29 @@
     <tbody>
         {% for c in centros %}
         <tr>
-            <td>{{ c.id }}</td>
+            <td>{{ c.id_centro }}</td>
             <td>{{ c.nombre }}</td>
             <td>{{ c.distrito }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+    let map = L.map('map').setView([-12.0464, -77.0428], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+    }).addTo(map);
+
+    let centrosData = {{ centros | tojson }};
+
+    centrosData.forEach(c => {
+        if (c.latitud && c.longitud) {
+            let marker = L.marker([c.latitud, c.longitud]).addTo(map);
+            marker.bindPopup(`<b>${c.nombre}</b><br>${c.distrito}`);
+        }
+    });
+</script>
 
 {% endblock %}
