@@ -22,7 +22,8 @@ export default function MapaScreen() {
 
   const fetchCentros = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/mapa/api/centros");
+      /* Para esta parte es necesario que se cambie la ruta "192.168.18.55" por la ipv4 propia de la computadora */
+      const response = await axios.get("http://192.168.18.55:5000/mapa/api/centros");
       setCentros(response.data);
       setLoading(false);
     } catch (error) {
