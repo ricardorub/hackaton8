@@ -1,19 +1,11 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<h3 class="mb-4">Candidatos</h3>
+<h3 class="mb-4">Información de Candidatos y Partidos Políticos</h3>
 
 <div class="row mb-3">
-  <div class="col-md-4 mb-2">
-    <label class="form-label">Filtrar por región</label>
-    <input id="filtro-region" class="form-control" placeholder="Lima, Cusco, Nacional...">
-  </div>
-  <div class="col-md-4 mb-2">
-    <label class="form-label">Filtrar por cargo</label>
-    <input id="filtro-cargo" class="form-control" placeholder="Presidente, Congresista...">
-  </div>
-  <div class="col-md-4 d-flex align-items-end mb-2">
-    <button id="btn-filtrar" class="btn btn-primary w-100">Aplicar filtros</button>
+  <div class="col-md-12">
+    <p>A continuación se muestra la información detallada de los candidatos y sus respectivos partidos políticos.</p>
   </div>
 </div>
 
@@ -25,15 +17,7 @@
 {% block scripts %}
 <script>
 async function cargarCandidatos() {
-  const region = document.getElementById("filtro-region").value.trim();
-  const cargo = document.getElementById("filtro-cargo").value.trim();
-
   let url = "/api/candidatos";
-  const params = [];
-  if (region) params.push(`region=${encodeURIComponent(region)}`);
-  if (cargo) params.push(`cargo=${encodeURIComponent(cargo)}`);
-  if (params.length > 0) url += "?" + params.join("&");
-
   const res = await fetch(url);
   const data = await res.json();
 
@@ -41,25 +25,32 @@ async function cargarCandidatos() {
   contenedor.innerHTML = "";
 
   if (!Array.isArray(data) || data.length === 0) {
-    contenedor.innerHTML = "<p>No se encontraron candidatos con esos filtros.</p>";
+    contenedor.innerHTML = "<p>No se encontraron candidatos.</p>";
     return;
   }
 
   data.forEach(c => {
     const col = document.createElement("div");
-    col.className = "col-md-4 mb-3";
+    col.className = "col-md-6 mb-4";
 
     col.innerHTML = `
       <div class="card card-radius h-100">
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">${c.nombres} ${c.apellidos}</h5>
-          <p class="card-text mb-1"><strong>Profesión:</strong> ${c.profesion}</p>
-          <p class="card-text mb-1"><strong>Región:</strong> ${c.region}</p>
-          <p class="card-text mb-1"><strong>Agrupación:</strong> ${c.agrupacion || "-"}</p>
-          <p class="card-text mb-3"><strong>Cargo:</strong> ${c.cargo || "-"}</p>
-          <a href="/candidatos/${c.id}" class="btn btn-sm btn-outline-primary mt-auto">
-            Ver detalle
-          </a>
+        <div class="row g-0">
+          <div class="col-md-4">
+            <img src="data:image/jpeg;base64,${c.foto_candidato_principal}" class="img-fluid rounded-start" alt="Foto de ${c.nombre_completo}">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+              <h5 class="card-title">${c.nombre_completo}</h5>
+              <p class="card-text mb-1"><strong>Partido Político:</strong> ${c.nombre_partido}</p>
+              <p class="card-text mb-1"><strong>ID Símbolo JNE:</strong> ${c.jne_id_simbolo}</p>
+              <p class="card-text mb-1"><strong>Dirección Legal:</strong> ${c.direccion_legal}</p>
+              <p class="card-text mb-1"><strong>Tipo de Candidatura:</strong> ${c.tipo_candidatura}</p>
+              <a href="${c.perfil_url}" class="btn btn-sm btn-outline-primary mt-2" target="_blank">
+                Ver Perfil
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -67,8 +58,6 @@ async function cargarCandidatos() {
     contenedor.appendChild(col);
   });
 }
-
-document.getElementById("btn-filtrar").addEventListener("click", cargarCandidatos);
 
 // Cargar al entrar
 cargarCandidatos();

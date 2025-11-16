@@ -33,10 +33,10 @@ def get_partidos():
     try:
         # Consultar la base de datos usando el modelo PartidosPoliticos
         partidos = PartidosPoliticos.query.all()
-        
+
         lista_partidos_json = []
         for partido in partidos:
-            
+
             # Codificar el logo BLOB a base64 para enviarlo como string en el JSON
             # La app móvil puede decodificar esto para mostrar la imagen.
             logo_base64 = None
@@ -50,10 +50,10 @@ def get_partidos():
                 'nombre_partido': partido.nombre_partido,
                 'siglas': partido.siglas,
                 'fecha_inscripcion': partido.fecha_inscripcion.isoformat() if partido.fecha_inscripcion else None,
-                
+
                 # Devuelve el logo como un string base64
-                'logo_base64': logo_base64, 
-                
+                'logo_base64': logo_base64,
+
                 'direccion_legal': partido.direccion_legal,
                 'telefonos': partido.telefonos,
                 'sitio_web': partido.sitio_web,
@@ -62,7 +62,7 @@ def get_partidos():
                 'personero_alterno': partido.personero_alterno,
                 'ideologia': partido.ideologia
             })
-            
+
         # Devolver la lista de partidos como una respuesta JSON
         return jsonify(lista_partidos_json)
 
@@ -96,7 +96,7 @@ def candidatos_view():
     try:
         # Obtén todos los candidatos de la base de datos con su partido asociado
         candidatos_db = db.session.query(Candidatos).join(
-            PartidosPoliticos, 
+            PartidosPoliticos,
             Candidatos.partido_politico_id == PartidosPoliticos.id_partido
         ).all()
 
@@ -138,53 +138,33 @@ def candidatos_view():
 @main.route('/api/candidatos')
 def api_candidatos():
     """
-    Endpoint de API para obtener los candidatos con filtros.
+    Endpoint de API para obtener los candidatos con toda la información.
     """
     try:
-        # Obtener parámetros de consulta
-        region = request.args.get('region', None)
-        cargo = request.args.get('cargo', None)
-
         # Construir la consulta inicial
-        query = db.session.query(Candidatos).join(PartidosPoliticos, Candidatos.partido_politico_id == PartidosPoliticos.id_partido)
-
-        # Aplicar filtros si se proporcionan
-        if region:
-            query = query.filter(Candidatos.region.ilike(f'%{region}%'))
-        if cargo:
-            query = query.filter(Candidatos.tipo_candidatura.ilike(f'%{cargo}%'))
+        query = db.session.query(Candidatos, PartidosPoliticos).join(PartidosPoliticos, Candidatos.partido_politico_id == PartidosPoliticos.id_partido)
 
         # Ejecutar la consulta
-        candidatos = query.all()
+        results = query.all()
 
         # Serializar los resultados
         lista_candidatos = []
-        for candidato in candidatos:
+        for candidato, partido in results:
             # Codificar la imagen del candidato a base64
-            imagen_base64 = None
+            foto_candidato_principal = None
             if candidato.imagen_blob:
-                imagen_base64 = base64.b64encode(candidato.imagen_blob).decode('utf-8')
-
-            # Codificar el logo del partido a base64
-            logo_base64 = None
-            if candidato.partido_politico and candidato.partido_politico.logo_blob:
-                logo_base64 = base64.b64encode(candidato.partido_politico.logo_blob).decode('utf-8')
+                foto_candidato_principal = base64.b64encode(candidato.imagen_blob).decode('utf-8')
 
             lista_candidatos.append({
-                'id': candidato.id,
+                'nombre_partido': partido.nombre_partido,
+                'foto_candidato_principal': foto_candidato_principal,
+                'direccion_legal': partido.direccion_legal,
                 'nombre_completo': candidato.nombre_completo,
                 'tipo_candidatura': candidato.tipo_candidatura,
                 'perfil_url': candidato.perfil_url,
-                'region': candidato.region,
-                'biografia': candidato.biografia,
-                'imagen_base64': imagen_base64,
-                'partido': {
-                    'nombre': candidato.partido_politico.nombre_partido,
-                    'siglas': candidato.partido_politico.siglas,
-                    'logo_base64': logo_base64
-                }
+                'jne_id_simbolo': partido.jne_id_simbolo
             })
-        
+
         return jsonify(lista_candidatos)
 
     except Exception as e:
