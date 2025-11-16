@@ -32,13 +32,12 @@ def create_app():
     app.register_blueprint(mapa, url_prefix="/mapa")
 
     # Crear tablas si no existen
-    with app.app_context():
-        db.create_all()
+    with app.app_context():db.create_all()
 
     return app
 
 
 app = create_app()
 
-if __name__ == "__main__":
-    app.run(debug=True)
+#acepta conección de cualquier parte
+if __name__ == "__main__":app.run(host='0.0.0.0', port=5000, debug=True)
