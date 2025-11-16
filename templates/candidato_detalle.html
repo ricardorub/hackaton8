@@ -1,0 +1,60 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div id="detalle-candidato">
+  <p>Cargando información del candidato...</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const candidatoId = {{ candidato_id|tojson }};
+
+async function cargarDetalle() {
+  const res = await fetch(`/api/candidatos/${candidatoId}`);
+  const data = await res.json();
+
+  const cont = document.getElementById("detalle-candidato");
+
+  if (data.error) {
+    cont.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+    return;
+  }
+
+  let sectoresHtml = "";
+  if (data.plan_gobierno && data.plan_gobierno.sectores) {
+    sectoresHtml = data.plan_gobierno.sectores.map(s => `
+      <li><strong>${s.sector}:</strong> ${s.resumen}</li>
+    `).join("");
+  }
+
+  cont.innerHTML = `
+    <div class="card card-radius">
+      <div class="card-body">
+        <h3 class="card-title mb-3">${data.nombres} ${data.apellidos}</h3>
+        <p class="card-text"><strong>Profesión:</strong> ${data.profesion}</p>
+        <p class="card-text"><strong>Región:</strong> ${data.region}</p>
+        <p class="card-text"><strong>Agrupación:</strong> ${data.agrupacion || "-"}</p>
+        ${data.postulacion && data.postulacion.cargo ? `
+          <p class="card-text"><strong>Cargo al que postula:</strong> ${data.postulacion.cargo} (${data.postulacion.ambito})</p>
+        ` : ""}
+
+        <p class="card-text">
+          <strong>Hoja de vida (JNE):</strong>
+          <a href="${data.hoja_vida_url}" target="_blank">Ver hoja de vida</a>
+        </p>
+
+        ${data.plan_gobierno ? `
+          <hr>
+          <h4>Plan de gobierno de su agrupación</h4>
+          <p><a href="${data.plan_gobierno.url_pdf}" target="_blank">Ver plan completo (PDF)</a></p>
+          <ul>${sectoresHtml}</ul>
+        ` : ""}
+      </div>
+    </div>
+  `;
+}
+
+cargarDetalle();
+</script>
+{% endblock %}

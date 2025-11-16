@@ -1,0 +1,341 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="header">
+    <div class="container">
+        <h1 class="display-5 fw-bold text-center">Calendario de Actividades de los Miembros de Mesa</h1>
+        <p class="lead text-center mb-0">Sigue la línea de tiempo de las actividades durante la jornada electoral:</p>
+    </div>
+</div>
+
+<div class="filter-section">
+    <div class="container">
+        <div class="year-tabs mb-3">
+            <button class="year-tab active" data-year="horario">Horario</button>
+            <button class="year-tab" data-year="instalacion">Instalación</button>
+            <button class="year-tab" data-year="sufragio">Sufragio</button>
+            <button class="year-tab" data-year="otros">Otros</button>
+        </div>
+        <div class="month-tabs" id="monthTabs">
+            <!-- Las pestañas se cargarán dinámicamente aquí -->
+        </div>
+    </div>
+</div>
+
+<div class="timeline-container" id="timelineContainer">
+    <!-- Los eventos se cargarán dinámicamente aquí -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const eventsData = {
+        'horario': {
+            'horario': [
+                {
+                    date: '6:00 a.m.',
+                    title: 'Los miembros de mesa deben reunirse en el local de votación asignado',
+                    icon: '⏰'
+                },
+                {
+                    date: '7:00 a.m.',
+                    title: 'Se conforma e instala la mesa',
+                    icon: '🛠️',
+                    items: [
+                        'Se inicia la revisión del material electoral recibido'
+                    ]
+                },
+                {
+                    date: '8:00 a.m.',
+                    title: 'Inicia oficialmente la jornada de sufragio',
+                    icon: '🗳️'
+                },
+                {
+                    date: '5:00 p.m.',
+                    title: 'Se cierran las puertas del local de votación',
+                    icon: '🚪',
+                    items: [
+                        'Pueden votar quienes hayan ingresado antes de esta hora'
+                    ]
+                },
+                {
+                    date: 'Después de 5:00 p.m.',
+                    title: 'Inicio del acto de escrutinio',
+                    icon: '📊',
+                    items: [
+                        'Una vez concluido el sufragio, se inicia el acto de escrutinio'
+                    ]
+                },
+                {
+                    date: 'Finalización',
+                    title: 'Conclusión del acto de escrutinio',
+                    icon: '✅',
+                    items: [
+                        'El acto de escrutinio finaliza cuando se han contado todos los votos',
+                        'Se completan todas las tareas finales'
+                    ]
+                }
+            ]
+        },
+        'instalacion': {
+            'instalacion': [
+                {
+                    date: 'Requisitos',
+                    title: 'La instalación de la mesa requiere',
+                    icon: '👥',
+                    items: [
+                        'La presencia de al menos tres miembros de mesa titulares o suplentes'
+                    ]
+                },
+                {
+                    date: 'Recepción del material',
+                    title: 'Extraer los materiales de los paquetes "A" y "B"',
+                    icon: '📦',
+                    items: [
+                        'Verificar que el contenido sea correcto según las etiquetas'
+                    ]
+                },
+                {
+                    date: 'Firma de asistencia',
+                    title: 'El secretario llama a cada miembro presente',
+                    icon: '✍️',
+                    items: [
+                        'Cada miembro firma y coloca su huella digital en la Hoja de Control de Asistencia',
+                        'En caso de inasistencia, se escribe "FALTÓ"'
+                    ]
+                },
+                {
+                    date: 'Organización del espacio',
+                    title: 'El tercer miembro guarda el paquete "C" (de escrutinio)',
+                    icon: '📦',
+                    items: [
+                        'Pega la etiqueta "Restos electorales" en la caja vacía',
+                        'Coloca la caja a un costado de la mesa'
+                    ]
+                },
+                {
+                    date: 'Verificación del ambiente',
+                    title: 'Todos los miembros verifican',
+                    icon: '🔍',
+                    items: [
+                        'Que la relación de electores esté pegada en el exterior del aula',
+                        'Que el cartel de candidatos esté dentro de la cámara secreta'
+                    ]
+                },
+                {
+                    date: 'Firma de cédulas',
+                    title: 'El presidente verifica la cantidad de cédulas recibidas',
+                    icon: '📝',
+                    items: [
+                        'Procede a firmar todas las cédulas'
+                    ]
+                },
+                {
+                    date: 'Llenado del Acta de Instalación',
+                    title: 'El secretario inicia el llenado del Acta Electoral',
+                    icon: '📄',
+                    items: [
+                        'Completa la sección "A", Acta de Instalación',
+                        'Esta debe ser firmada por los tres miembros de mesa',
+                        'Puede ser firmada por los personeros presentes si lo desean'
+                    ]
+                }
+            ]
+        },
+        'sufragio': {
+            'sufragio': [
+                {
+                    date: 'Identificación del votante',
+                    title: 'El presidente solicita el DNI del ciudadano',
+                    icon: '🆔',
+                    items: [
+                        'Deposita el DNI en una bandeja',
+                        'El secretario verifica el número de orden, apellidos y nombres en la Lista de Electores'
+                    ]
+                },
+                {
+                    date: 'Entrega de cédula',
+                    title: 'El presidente entrega una cédula doblada y firmada al elector',
+                    icon: '🗳️'
+                },
+                {
+                    date: 'Votación',
+                    title: 'El tercer miembro verifica que el elector ingrese solo a la cámara secreta',
+                    icon: '🚶'
+                },
+                {
+                    date: 'Depósito del voto',
+                    title: 'El tercer miembro indica al elector que coloque la cédula doblada en el ánfora',
+                    icon: '📥'
+                },
+                {
+                    date: 'Registro del voto',
+                    title: 'El secretario indica al elector dónde debe firmar y poner su huella en la Lista de Electores',
+                    icon: '📋'
+                },
+                {
+                    date: 'Devolución del DNI',
+                    title: 'El presidente le pide al elector que recoja su DNI de la bandeja',
+                    icon: '🔄'
+                },
+                {
+                    date: 'Al finalizar el sufragio',
+                    title: 'Procedimiento de cierre',
+                    icon: '🔚',
+                    items: [
+                        'El presidente firma la última página de la Lista de Electores',
+                        'Se pregunta a los personeros si desean firmar',
+                        'El secretario cuenta las firmas/huellas para determinar cuántos ciudadanos votaron',
+                        'Se anota esta cantidad en el Acta de Sufragio',
+                        'Se marca con una "X" en el recuadro "NO VOTÓ" de cada persona que no acudió',
+                        'La lista se guarda en un sobre plástico anaranjado',
+                        'El sobre se entrega al personal de la ONPE'
+                    ]
+                }
+            ]
+        },
+        'otros': {
+            'otros': [
+                {
+                    date: 'Escrutinio',
+                    title: 'Procedimiento de escrutinio',
+                    icon: '📊',
+                    items: [
+                        'Tras el cierre de la votación, se inicia el escrutinio simultáneo de los votos para las elecciones Regional y Municipal',
+                        'Los miembros de mesa verifican la validez de cada voto (válido, nulo, en blanco)',
+                        'Se registran los resultados en hojas borrador',
+                        'Luego, se trasladan los totales al Acta de Escrutinio sin borrones ni enmendaduras'
+                    ]
+                },
+                {
+                    date: 'Protección de resultados',
+                    title: 'Una vez completadas las actas',
+                    icon: '🛡️',
+                    items: [
+                        'Se protegen los resultados y el campo de observaciones con láminas autoadhesivas'
+                    ]
+                },
+                {
+                    date: 'Entrega de actas',
+                    title: 'El presidente entrega los sobres cerrados',
+                    icon: '📨',
+                    items: [
+                        'Sobre morado, verde, plomo y anaranjado que contienen las actas',
+                        'Se entregan a un responsable de la ONPE'
+                    ]
+                },
+                {
+                    date: 'Colocación de resultados',
+                    title: 'El tercer miembro pega los Carteles de Resultados',
+                    icon: '📋',
+                    items: [
+                        'Se colocan en la entrada del aula de votación'
+                    ]
+                },
+                {
+                    date: 'Devolución de material',
+                    title: 'Se devuelve todo el material electoral',
+                    icon: '📦',
+                    items: [
+                        'Ánfora, cabinas, caja de restos electorales',
+                        'Se entrega al personal de la ONPE'
+                    ]
+                },
+                {
+                    date: 'Impugnaciones',
+                    title: 'Procedimiento para impugnaciones',
+                    icon: '⚖️',
+                    items: [
+                        'Si un personero impugna un voto, los miembros de mesa resuelven por mayoría',
+                        'Si la impugnación es fundada, el voto se cuenta como impugnado',
+                        'El voto impugnado se guarda en un sobre especial junto con la cédula'
+                    ]
+                }
+            ]
+        }
+    };
+
+    const tabsData = {
+        'horario': ['horario'],
+        'instalacion': ['instalacion'],
+        'sufragio': ['sufragio'],
+        'otros': ['otros']
+    };
+
+    let currentYear = 'horario';
+    let currentMonth = 'horario';
+
+    function renderTimeline() {
+        const container = document.getElementById('timelineContainer');
+        const events = eventsData[currentYear][currentMonth];
+        
+        if (!events || events.length === 0) {
+            container.innerHTML = '<div class="no-events">No hay información disponible para esta categoría</div>';
+            return;
+        }
+
+        container.innerHTML = events.map(event => `
+            <div class="timeline-item">
+                <span class="date-badge">${event.date}</span>
+                <div class="timeline-content">
+                    <div class="timeline-header">
+                        <div class="icon-badge">${event.icon}</div>
+                        <strong>${event.title}</strong>
+                    </div>
+                    ${event.items ? `
+                        <ul>
+                            ${event.items.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateMonthTabs(year) {
+        const monthTabsContainer = document.getElementById('monthTabs');
+        monthTabsContainer.innerHTML = '';
+        
+        const months = tabsData[year];
+        
+        months.forEach((month, index) => {
+            const button = document.createElement('button');
+            button.className = 'month-tab active';
+            button.dataset.month = month;
+            
+            // Asignar nombres legibles para las pestañas
+            const tabNames = {
+                'horario': 'HORARIO',
+                'instalacion': 'INSTALACIÓN',
+                'sufragio': 'SUFRAGIO',
+                'otros': 'OTROS'
+            };
+            
+            button.textContent = tabNames[month];
+            monthTabsContainer.appendChild(button);
+            
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.month-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentMonth = month;
+                renderTimeline();
+            });
+        });
+    }
+
+    document.querySelectorAll('.year-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.year-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentYear = this.dataset.year;
+            currentMonth = tabsData[currentYear][0];
+            updateMonthTabs(currentYear);
+            renderTimeline();
+        });
+    });
+
+    // Inicializar
+    updateMonthTabs(currentYear);
+    renderTimeline();
+</script>
+{% endblock %}
