@@ -80,3 +80,7 @@ def parte3():
 @main.route('/parte4')
 def parte4():
     return render_template('parte4.html')
+
+@main.route('/candidatos')
+def candidatos_view():
+    return render_template('candidatos.html')
