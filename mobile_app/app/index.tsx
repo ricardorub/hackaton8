@@ -15,7 +15,7 @@ export default function LoginScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.headerContainer}>
         <Text style={styles.title}>Centros de Votación</Text>
-        <Text style={styles.subtitle}>Encuentra tu centro de votación</Text>
+        <Text style={styles.subtitle}>Encuentra tu centro de Votación </Text>
       </View>
 
       <View style={styles.formContainer}>
