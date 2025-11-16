@@ -1,6 +1,7 @@
 import base64
-from flask import Blueprint, render_template, jsonify
-from models import PartidosPoliticos, CentrosVotacion
+from flask import Blueprint, render_template, jsonify, request
+from models import PartidosPoliticos, CentrosVotacion, Candidatos
+from extensions import db
 
 main = Blueprint('main', __name__)
 
@@ -89,3 +90,61 @@ def parte4():
 @main.route('/candidatos')
 def candidatos_view():
     return render_template('candidatos.html')
+
+@main.route('/api/candidatos')
+def api_candidatos():
+    """
+    Endpoint de API para obtener los candidatos con filtros.
+    """
+    try:
+        # Obtener parámetros de consulta
+        region = request.args.get('region', None)
+        cargo = request.args.get('cargo', None)
+
+        # Construir la consulta inicial
+        query = db.session.query(Candidatos).join(PartidosPoliticos, Candidatos.partido_politico_id == PartidosPoliticos.id_partido)
+
+        # Aplicar filtros si se proporcionan
+        if region:
+            query = query.filter(Candidatos.region.ilike(f'%{region}%'))
+        if cargo:
+            query = query.filter(Candidatos.tipo_candidatura.ilike(f'%{cargo}%'))
+
+        # Ejecutar la consulta
+        candidatos = query.all()
+
+        # Serializar los resultados
+        lista_candidatos = []
+        for candidato in candidatos:
+            # Codificar la imagen del candidato a base64
+            imagen_base64 = None
+            if candidato.imagen_blob:
+                imagen_base64 = base64.b64encode(candidato.imagen_blob).decode('utf-8')
+
+            # Codificar el logo del partido a base64
+            logo_base64 = None
+            if candidato.partido_politico and candidato.partido_politico.logo_blob:
+                logo_base64 = base64.b64encode(candidato.partido_politico.logo_blob).decode('utf-8')
+
+            lista_candidatos.append({
+                'id': candidato.id,
+                'nombre_completo': candidato.nombre_completo,
+                'tipo_candidatura': candidato.tipo_candidatura,
+                'perfil_url': candidato.perfil_url,
+                'region': candidato.region,
+                'biografia': candidato.biografia,
+                'imagen_base64': imagen_base64,
+                'partido': {
+                    'nombre': candidato.partido_politico.nombre_partido,
+                    'siglas': candidato.partido_politico.siglas,
+                    'logo_base64': logo_base64,
+                    'direccion_legal': candidato.partido_politico.direccion_legal,
+                    'personero_titular': candidato.partido_politico.personero_titular
+                }
+            })
+
+        return jsonify(lista_candidatos)
+
+    except Exception as e:
+        print(f"Error en /api/candidatos: {e}")
+        return jsonify({"error": str(e)}), 500
