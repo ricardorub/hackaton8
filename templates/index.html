@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2 class="mb-3">Centros de Votación</h2>
+
+<!-- Panel de información que se actualiza al hacer clic en marcadores -->
+<div id="info-panel" class="card mb-4" style="display: none;">
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title mb-0">Información del Centro de Votación</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Centro:</strong></p>
+                <p id="info-nombre" class="fw-bold text-primary">-</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Ubicación:</strong></p>
+                <p id="info-ubicacion">-</p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Distrito:</strong></p>
+                <p id="info-distrito">-</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contenedor del mapa -->
+<div id="map" style="height: 500px; width: 100%; border: 2px solid #333; margin-bottom: 20px;"></div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Inicializar el mapa centrado en Lima, Perú
+    let map = L.map('map').setView([-12.0464, -77.0428], 11);
+
+    // Añadir capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Datos de centros desde el backend
+    let centrosData = {{ centros | tojson }};
+
+    // Función para actualizar el panel de información
+    function actualizarPanel(centro) {
+        document.getElementById('info-nombre').textContent = centro.nombre;
+        document.getElementById('info-ubicacion').textContent = centro.ubicacion_detalle;
+        document.getElementById('info-distrito').textContent = centro.distrito;
+        document.getElementById('info-panel').style.display = 'block';
+    }
+
+    // Añadir marcadores al mapa
+    centrosData.forEach(c => {
+        if (c.latitud && c.longitud) {
+            // Crear contenido del popup
+            let popupContent = `
+                <div style="min-width: 200px;">
+                    <div style="font-weight: bold; color: #2c3e50; margin-bottom: 8px; font-size: 1.1rem;">${c.nombre}</div>
+                    <div style="margin-bottom: 5px;"><strong>Ubicación:</strong> ${c.ubicacion_detalle}</div>
+                    <div style="margin-bottom: 5px;"><strong>Distrito:</strong> ${c.distrito}</div>
+                    <button onclick="actualizarPanelDesdePopup(${JSON.stringify(c).replace(/"/g, '&quot;')})" 
+                            class="btn btn-sm btn-primary mt-2">
+                        Ver detalles
+                    </button>
+                </div>
+            `;
+            
+            // Crear marcador con popup
+            let marker = L.marker([c.latitud, c.longitud]).addTo(map);
+            marker.bindPopup(popupContent);
+            
+            // Añadir evento de clic al marcador (no al popup)
+            marker.on('click', function() {
+                actualizarPanel(c);
+            });
+        }
+    });
+
+    // Función global para ser llamada desde el popup
+    window.actualizarPanelDesdePopup = function(centro) {
+        actualizarPanel(centro);
+        // Cerrar el popup después de hacer clic en "Ver detalles"
+        map.closePopup();
+    };
+</script>
+
+{% endblock %}

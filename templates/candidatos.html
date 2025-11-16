@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h3 class="mb-4">Información de Candidatos y Partidos Políticos</h3>
+
+<div class="row mb-3">
+  <div class="col-md-12">
+    <p>A continuación se muestra la información detallada de los candidatos y sus respectivos partidos políticos.</p>
+  </div>
+</div>
+
+<!-- Filtro por nombre del partido -->
+<div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="input-group">
+            <input type="text" id="filtro-partido" class="form-control" placeholder="Buscar por nombre del partido...">
+            <button class="btn btn-outline-secondary" type="button" id="btn-buscar-partido">Buscar</button>
+        </div>
+    </div>
+</div>
+
+<div id="lista-candidatos" class="row">
+  <!-- Aquí se insertan las tarjetas por JS -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function cargarCandidatos(nombrePartido = null) {
+  let url = "/api/candidatos";
+  if (nombrePartido) {
+    const params = new URLSearchParams();
+    params.append('partido_nombre', nombrePartido);
+    url += `?${params.toString()}`;
+  }
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+        throw new Error(`Error en la solicitud: ${res.statusText}`);
+    }
+    const data = await res.json();
+
+    const contenedor = document.getElementById("lista-candidatos");
+    contenedor.innerHTML = "";
+
+    if (!Array.isArray(data) || data.length === 0) {
+      contenedor.innerHTML = "<p class='col-12'>No se encontraron candidatos.</p>";
+      return;
+    }
+
+    data.forEach(c => {
+      const col = document.createElement("div");
+      col.className = "col-md-6 mb-4";
+
+      // Accedemos a los datos usando la NUEVA estructura plana del endpoint API
+      const imagenSrc = c.foto_candidato_principal ? `image/jpeg;base64,${c.foto_candidato_principal}` : 'https://via.placeholder.com/150'; // Imagen por defecto si no hay
+
+      // Truncar biografía
+      let biografia = c.biografia || "Biografía no disponible.";
+      if (biografia.length > 100) {
+          biografia = biografia.substring(0, 100) + '...';
+      }
+
+      col.innerHTML = `
+        <div class="card card-radius h-100">
+          <div class="row g-0">
+            <div class="col-md-4">
+              <img src="${imagenSrc}" class="img-fluid rounded-start" alt="Foto de ${c.nombre_completo}" style="object-fit: cover; height: 100%;">
+            </div>
+            <div class="col-md-8">
+              <div class="card-body">
+                <h5 class="card-title">${c.nombre_completo}</h5>
+                <p class="card-text mb-1"><strong>Partido:</strong> ${c.nombre_partido} (${c.siglas_partido || ''})</p>
+                <p class="card-text mb-1"><strong>Tipo:</strong> ${c.tipo_candidatura}</p>
+                <p class="card-text mb-1"><strong>Región:</strong> ${c.region || 'No especificada'}</p>
+                <p class="card-text"><small class="text-muted fst-italic">"${biografia}"</small></p>
+                <a href="${c.perfil_url || '#'}" class="btn btn-sm btn-outline-primary mt-2" target="_blank" ${c.perfil_url ? '' : 'disabled'}>
+                  Ver Perfil
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      contenedor.appendChild(col);
+    });
+  } catch (error) {
+    console.error("Error al cargar candidatos:", error);
+    const contenedor = document.getElementById("lista-candidatos");
+    contenedor.innerHTML = `<div class="col-12"><p class="text-center text-danger">Ocurrió un error al cargar los datos: ${error.message}</p></div>`;
+  }
+}
+
+// Evento para el botón de búsqueda
+document.getElementById("btn-buscar-partido").addEventListener("click", () => {
+    const nombrePartido = document.getElementById("filtro-partido").value.trim();
+    cargarCandidatos(nombrePartido);
+});
+
+// Cargar todos los candidatos al entrar (sin filtro)
+cargarCandidatos();
+
+</script>
+{% endblock %}
