@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, Dimensions, TouchableOpacity, Modal } from "react-native";
 import { WebView } from "react-native-webview";
 import axios from "axios";
+import ChatbotScreen from "./chatbot";
+import { useRouter } from "expo-router";
+import { API_BASE_URL } from "../config";
 
 interface Centro {
   id: string;
@@ -12,9 +15,12 @@ interface Centro {
 }
 
 export default function MapaScreen() {
+  const router = useRouter();
   const [centros, setCentros] = useState<Centro[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCentro, setSelectedCentro] = useState<Centro | null>(null);
+  const [isChatbotVisible, setIsChatbotVisible] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   useEffect(() => {
     fetchCentros();
@@ -22,8 +28,7 @@ export default function MapaScreen() {
 
   const fetchCentros = async () => {
     try {
-      /* Para esta parte es necesario que se cambie la ruta "192.168.18.55" por la ipv4 propia de la computadora */
-      const response = await axios.get("http://192.168.18.55:5000/mapa/api/centros");
+      const response = await axios.get(`${API_BASE_URL}/mapa/api/centros`);
       setCentros(response.data);
       setLoading(false);
     } catch (error) {
@@ -96,6 +101,43 @@ export default function MapaScreen() {
           </View>
         ))}
       </ScrollView>
+      <TouchableOpacity style={styles.fab} onPress={() => setIsChatbotVisible(true)}>
+        <Text style={styles.fabIcon}>?</Text>
+      </TouchableOpacity>
+      {/* TODO: Replace "YOUR_GEMINI_API_KEY" with your actual Gemini API key. */}
+      {/* For production, it's recommended to store the API key in a secure way, e.g., using environment variables. */}
+      <ChatbotScreen isVisible={isChatbotVisible} onClose={() => setIsChatbotVisible(false)} apiKey="YOUR_GEMINI_API_KEY" />
+
+      <TouchableOpacity style={styles.menuFab} onPress={() => setIsMenuVisible(true)}>
+        <Text style={styles.fabIcon}>☰</Text>
+      </TouchableOpacity>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isMenuVisible}
+        onRequestClose={() => setIsMenuVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuVisible(false); router.push('/candidatos'); }}>
+              <Text style={styles.menuItemText}>Candidatos</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuVisible(false); router.push('/cronograma'); }}>
+              <Text style={styles.menuItemText}>Cronograma</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuVisible(false); router.push('/electores'); }}>
+              <Text style={styles.menuItemText}>Electores</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuVisible(false); router.push('/miembrosmesa'); }}>
+              <Text style={styles.menuItemText}>Miembros de Mesa</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.closeButton} onPress={() => setIsMenuVisible(false)}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -140,5 +182,65 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#666",
     marginTop: 4,
+  },
+  fab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#007AFF',
+    borderRadius: 28,
+    elevation: 8,
+  },
+  fabIcon: {
+    fontSize: 24,
+    color: 'white',
+  },
+  menuFab: {
+    position: 'absolute',
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    left: 20,
+    bottom: 20,
+    backgroundColor: '#007AFF',
+    borderRadius: 28,
+    elevation: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  menuItem: {
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  menuItemText: {
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: '#ff3b30',
+    padding: 10,
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 18,
   },
 });

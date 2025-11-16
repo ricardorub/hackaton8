@@ -22,6 +22,30 @@ export default function RootLayout() {
           title: "Centros de Votación",
         }}
       />
+      <Stack.Screen
+        name="candidatos"
+        options={{
+          title: "Candidatos",
+        }}
+      />
+      <Stack.Screen
+        name="cronograma"
+        options={{
+          title: "Cronograma",
+        }}
+      />
+      <Stack.Screen
+        name="electores"
+        options={{
+          title: "Electores",
+        }}
+      />
+      <Stack.Screen
+        name="miembrosmesa"
+        options={{
+          title: "Miembros de Mesa",
+        }}
+      />
     </Stack>
   );
 }
